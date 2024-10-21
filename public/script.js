@@ -12,10 +12,10 @@ const getGenres = async () => {
     const genreRequestEndpoint = 'genre/movie/list?language=en';
     let genres
     try {
-      await fetch(`${tmdbBaseUrl}${genreRequestEndpoint}`, options)
+        await fetch(`${tmdbBaseUrl}${genreRequestEndpoint}`, options)
             .then(response => response.json())
             .then(data => {
-               genres =  data.genres;
+                genres = data.genres;
             });
     } catch (error) {
         console.error('Error:', error);
@@ -24,25 +24,54 @@ const getGenres = async () => {
     return genres;
 };
 
-const getMovies = () => {
+const getMovies = async () => {
     const selectedGenre = getSelectedGenre();
+    const movieRequestEndpoint = `discover/movie?with_genres=${selectedGenre}`;
+    let selectedMovies;
+    try {
+       await fetch(`${tmdbBaseUrl}${movieRequestEndpoint}`, options)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                selectedMovies = data.results;
+            });
+    } catch (error) {
+        console.error('Error:', error);
+    }
 
+    return selectedMovies;
 };
 
-const getMovieInfo = () => {
+const getMovieInfo = async (movie) => {
+    const movieId = movie.id;
+    const singleMovieEndpoint = `movie/${movieId}`
+    let movieInfo;
 
+    try {
+        await fetch(`${tmdbBaseUrl}${singleMovieEndpoint}`, options)
+            .then(response => response.json())
+            .then(data => {
+                movieInfo = data;
+            });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+
+    return movieInfo;
 };
 
 // Gets a list of movies and ultimately displays the info of a random movie from the list
-const showRandomMovie = () => {
+const showRandomMovie =  async () => {
     const movieInfo = document.getElementById('movieInfo');
     if (movieInfo.childNodes.length > 0) {
         clearCurrentMovie();
     }
-    ;
-
+    const movies = await getMovies();
+    const randomMovie = await getRandomMovie(movies);
+    const info = await getMovieInfo(randomMovie);
+    await displayMovie(info)
 };
 
 
 getGenres().then(populateGenreDropdown);
-playBtn.onclick = showRandomMovie;
+ playBtn.onclick = showRandomMovie;
